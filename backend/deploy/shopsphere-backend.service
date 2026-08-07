@@ -1,0 +1,32 @@
+[Unit]
+Description=ShopSphere Backend (Node.js/Express)
+Documentation=https://github.com/princewillopah/shopsphere
+After=network.target
+
+[Service]
+Type=simple
+User=shopsphere
+Group=shopsphere
+WorkingDirectory=/opt/shopsphere
+
+# All secrets/config come from this file (NOT committed). See .env.example.
+EnvironmentFile=/etc/shopsphere/backend.env
+
+# Apply DB migrations and (idempotent) seed once, before the server starts.
+ExecStartPre=/usr/bin/npm run migrate
+ExecStartPre=/usr/bin/npm run seed
+
+# Node process (Express) on port 5000.
+ExecStart=/usr/bin/node src/server.js
+
+Restart=on-failure
+RestartSec=5
+
+# --- Hardening ---
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
