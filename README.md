@@ -34,9 +34,9 @@ preserved so the React app changes are minimal.
 - **Backend:** see [`backend/README.md`](backend/README.md) — for more information
 - **Frontend:** set `VITE_API_URL` (see [`frontend/.env.example`](frontend/.env.example)) for more information
 
-- **Backend:** see [`backend/README.md`](backend/README.md) — for more information
+<!-- - **Backend:** see [`backend/README.md`](backend/README.md) — for more information
 - **Frontend:** set `VITE_API_URL` (see [`frontend/.env.example`](frontend/.env.example)),
-  then `npm install && npm run build`; deploy the `dist/` output to S3/CloudFront/Netlify.
+  then `npm install && npm run build`; deploy the `dist/` output to S3/CloudFront/Netlify. -->
 
 ## Not included yet
 
