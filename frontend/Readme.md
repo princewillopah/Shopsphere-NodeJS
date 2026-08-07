@@ -21,3 +21,17 @@ Important note:
   - `VITE_API_URL=http://localhost:5000/api`
 
 So the backend must also be running on port 5000 for the frontend to work.
+
+
+```
+
+
+Test users 
+John Doe — johndoe@gmail.com — password: 12345
+Jane Doe — janedoe@gmail.com — password: 12345
+Jack Doe — jackedoe@gmail.com — password: 12345
+
+
+Test Admin:
+Admin — admin@shopsphere.local — password: 123456
+```
