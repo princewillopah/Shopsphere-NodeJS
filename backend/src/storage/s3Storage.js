@@ -74,6 +74,7 @@ export class S3Storage {
       return `${env.storage.publicBaseUrl.replace(/\/$/, '')}/${key}`;
     }
 
-    return this.getAccessibleUrl(`https://${env.storage.bucket}.s3.${env.storage.region}.amazonaws.com/${key}`);
+    // Store a stable object URL; presigned URLs are generated only for API responses.
+    return `https://${env.storage.bucket}.s3.${env.storage.region}.amazonaws.com/${key}`;
   }
 }

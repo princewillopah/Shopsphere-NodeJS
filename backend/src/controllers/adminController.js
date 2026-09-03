@@ -1,5 +1,6 @@
 import { Order, Product, User } from '../models/index.js';
 import { toProductResponse, toUserResponse } from '../serializers/index.js';
+import { getStorage } from '../storage/index.js';
 import { BadRequestError, NotFoundError } from '../utils/AppError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 

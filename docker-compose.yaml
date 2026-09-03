@@ -1,0 +1,123 @@
+services:
+  # 1. Database Service (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: shopsphere_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: RootSecurePassword123!
+      MYSQL_DATABASE: shopsphere
+      MYSQL_USER: shopsphere
+      MYSQL_PASSWORD: StrongPassword123!
+    ports:
+      - "3306:3306"
+    volumes:
+      - shopsohere-nodejs-mysql-data:/var/lib/mysql
+      # Automatically run schema migrations or initializations if you map an entrypoint script
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRootSecurePassword123!"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopsohere-nodejs-network
+
+
+  # # Automated Migration & Seeder Runner
+  # db-migrate-seed:
+  #   build: ./backend
+  #   container_name: shopsphere_db_runner
+  #   restart: "no" # This container runs its tasks once and turns off
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   # This chain automatically runs migrations, creates the missing folder, and runs your seeds
+  #   command: sh -c "npx sequelize-cli db:migrate && node src/server.js --seed-only"
+  #   environment:
+  #     NODE_ENV: production
+  #     DB_HOST: db
+  #     DB_PORT: 3306
+  #     DB_NAME: shopsphere
+  #     DB_USER: shopsphere
+  #     DB_PASSWORD: StrongPassword123!
+  #   networks:
+  #     - shopsohere-nodejs-network
+
+
+  # 2. Backend Service (Node.js/Express)
+  backend:
+    build: ./backend
+    container_name: shopsphere_backend
+    restart: always
+    # Updated to run migrations AND seeds before starting the web server
+    command: sh -c "npx sequelize-cli db:migrate && npm start"
+    ports:
+      - "5000:5000"
+    environment:
+      # ---- Server ----
+      SERVER_PORT: 5000
+      NODE_ENV: production
+      
+      # ---- Database Network Routing ----
+      DB_HOST: db                  # Uses internal Docker DNS to route to the 'db' container
+      DB_PORT: 3306
+      DB_NAME: shopsphere
+      DB_USER: shopsphere
+      DB_PASSWORD: StrongPassword123!
+      DB_POOL_MAX: 10
+      
+      # ---- JWT & Security ----
+      JWT_SECRET: replace-with-a-long-random-string # Change this to your generated 32+ char key
+      JWT_EXPIRATION_MS: 604800000
+      CORS_ALLOWED_ORIGINS: "*"
+      
+      # ---- Uploads & AWS S3 ----
+      MAX_UPLOAD_MB: 10
+      STORAGE_PROVIDER: s3
+      S3_BUCKET: shopsphere-nodejs-images-bucket
+      AWS_REGION: us-east-1
+      S3_KEY_PREFIX: products/
+      S3_PUBLIC_BASE_URL: ""
+      PLACEHOLDER_IMAGE_URL: https://placehold.co/600x400?text=No+Image
+
+      # ---- Seeder Configurations ----
+      SEED_ENABLED: "true"
+      SEED_ADMIN_NAME: Admin
+      SEED_ADMIN_EMAIL: admin@shopsphere.local
+      SEED_ADMIN_PASSWORD: "123456"
+
+
+    depends_on:
+      db:
+        condition: service_healthy # Prevents backend boot errors by waiting for MySQL to fully start
+    networks:
+      - shopsohere-nodejs-network
+
+
+  # 3. Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: shopsohere-nodejs-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      # Update this line to use the relative path matching your .env file
+      VITE_API_URL: /api
+      VITE_PLACEHOLDER_IMAGE: https://placehold.co/600x400?text=No+Image
+    depends_on:
+      - backend
+    networks:
+      - shopsohere-nodejs-network
+   
+
+volumes:
+  shopsohere-nodejs-mysql-data:
+
+
+networks:
+  shopsohere-nodejs-network:
+    driver: bridge
