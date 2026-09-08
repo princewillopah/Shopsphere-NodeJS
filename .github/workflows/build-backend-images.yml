@@ -1,4 +1,4 @@
-name: Build and Push ShopSphere Frontend Images
+name: Build and Push ShopSphere Frontend Image
 
 on:
   push:
