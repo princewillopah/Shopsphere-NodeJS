@@ -3,7 +3,7 @@ name: Build and Push ShopSphere Frontend Image
 on:
   push:
     branches:
-      - main # Change this to 'master' or your default branch name if different
+      - main 
     paths:
       - 'Application/frontend/**'
     #   - 'Application/backend/**'
