@@ -3,7 +3,7 @@ name: Build and Push ShopSphere Backend Images
 on:
   push:
     branches:
-      - main # Change this to 'master' or your default branch name if different
+      - main # Change this to 'master' or your default branch name if different ---
     paths:
       - 'Application/backend/**'
   pull_request:
@@ -13,7 +13,7 @@ on:
       - 'Application/backend/**'
 
 jobs:
-  # --- BACKEND BUILD JOB ---
+  # --- BACKEND BUILD JOB ----
   build-backend:
     name: Build Backend Image
     runs-on: ubuntu-latest
