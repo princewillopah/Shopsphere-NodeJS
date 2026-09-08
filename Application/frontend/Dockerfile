@@ -1,5 +1,5 @@
 # -------------------------------------
-# Stage 1: Build & Dependencies
+# Stage 1: Build & Dependencies for rontend image
 # -------------------------------------
 FROM node:20-alpine AS build
 WORKDIR /app
