@@ -16,7 +16,7 @@ spec:
       containers:
       - name: frontend
         image: princewillopah/shopshere-node-frontend:1.2
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         envFrom:

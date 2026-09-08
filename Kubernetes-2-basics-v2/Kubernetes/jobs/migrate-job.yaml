@@ -28,7 +28,7 @@ spec:
       containers:
       - name: migrate
         image: princewillopah/shopshere-node-backend:1.2
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         command: ["sh", "-c", "npx sequelize-cli db:migrate"]
         env:
         - name: SERVER_PORT

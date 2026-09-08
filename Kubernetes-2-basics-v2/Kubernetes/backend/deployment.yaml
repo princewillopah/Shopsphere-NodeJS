@@ -32,7 +32,7 @@ spec:
       containers:
       - name: backend
         image: princewillopah/shopshere-node-backend:1.2
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         command: ["sh", "-c", "npm start"]
@@ -89,10 +89,16 @@ spec:
             cpu: "500m"
             memory: "512Mi"
         readinessProbe:
-          tcpSocket: { port: 5000 }
-          initialDelaySeconds: 15
-          periodSeconds: 5
-        livenessProbe:
-          tcpSocket: { port: 5000 }
-          initialDelaySeconds: 30
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 15 # App can accept traffic almost immediately
           periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30  # Verifies the container is up quickly
+          periodSeconds: 20
+          failureThreshold: 3

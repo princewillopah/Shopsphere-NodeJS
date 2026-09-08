@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-seed
+  namespace: shopsphere
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      initContainers:
+      - name: wait-for-db
+        image: mysql:8.0
+        command: ['sh', '-c', 'until mysqladmin ping -h $DB_HOST -P $DB_PORT -u $MYSQL_USER -p$MYSQL_PASSWORD; do echo waiting; sleep 2; done']
+        env:
+        - name: DB_HOST
+          valueFrom: { configMapKeyRef: { name: shopsphere-config, key: DB_HOST } }
+        - name: DB_PORT
+          valueFrom: { configMapKeyRef: { name: shopsphere-config, key: DB_PORT } }
+        - name: MYSQL_USER
+          valueFrom: { secretKeyRef: { name: shopsphere-secrets, key: MYSQL_USER } }
+        - name: MYSQL_PASSWORD
+          valueFrom: { secretKeyRef: { name: shopsphere-secrets, key: MYSQL_PASSWORD } }
+        securityContext:
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: "20m", memory: "32Mi" }
+          limits: { cpu: "50m", memory: "64Mi" }
+      containers:
+      - name: seed
+        image: princewillopah/shopsphere-node-backend:1.3
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "npm run seed"]
+        envFrom:
+        - configMapRef: { name: shopsphere-config }
+        - secretRef: { name: shopsphere-secrets }
+        env:
+        - name: DB_NAME
+          valueFrom: { secretKeyRef: { name: shopsphere-secrets, key: MYSQL_DATABASE } }
+        - name: DB_USER
+          valueFrom: { secretKeyRef: { name: shopsphere-secrets, key: MYSQL_USER } }
+        - name: DB_PASSWORD
+          valueFrom: { secretKeyRef: { name: shopsphere-secrets, key: MYSQL_PASSWORD } }
+        - name: SEED_ADMIN_PASSWORD
+          valueFrom: { secretKeyRef: { name: shopsphere-secrets, key: SEED_ADMIN_PASSWORD } }
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom: { secretKeyRef: { name: shopsphere-s3-secrets, key: AWS_ACCESS_KEY_ID } }
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom: { secretKeyRef: { name: shopsphere-s3-secrets, key: AWS_SECRET_ACCESS_KEY } }
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: { drop: ["ALL"] }
+        resources:
+          requests: { cpu: "100m", memory: "128Mi" }
+          limits: { cpu: "300m", memory: "512Mi" }
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

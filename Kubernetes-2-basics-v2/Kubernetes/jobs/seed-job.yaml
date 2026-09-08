@@ -28,7 +28,7 @@ spec:
       containers:
       - name: seed
         image: princewillopah/shopshere-node-backend:1.2
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         command: ["sh", "-c", "npm run seed"]
         env:
         - name: DB_HOST

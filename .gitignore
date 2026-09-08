@@ -88,3 +88,12 @@ durable-bond-key.json
 
 # **/Azure/*/providers.tf
 # **/providers.tf
+
+
+
+Kubernetes-3-basics-v3/Kubernetes/secrets/aws-s3.yaml
+**/aws-s3.yaml
+**/secrets/aws-s3.yaml
+/aws-s3.yaml
+aws-s3.yaml
+*/aws-s3.yaml
