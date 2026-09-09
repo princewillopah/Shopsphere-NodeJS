@@ -53,6 +53,7 @@ jobs:
           context: ./Application/frontend
           file: ./Application/frontend/Dockerfile
           push: true
+          load: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-node-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-node-frontend:${{ github.sha }}
