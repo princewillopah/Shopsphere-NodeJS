@@ -1,5 +1,5 @@
 # -------------------------------------
-# Stage 1: Build & Dependencies for rontend image
+# Stage 1: Build & Dependencies for backend image
 # -------------------------------------
 FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
@@ -17,7 +17,7 @@ RUN npm prune --production
 
 
 # -------------------------------------
-# Stage 2: Final Lightweight Runtime
+# Stage 2: Final Lightweight Runtime for backend image
 # -------------------------------------
 FROM node:20-alpine
 ENV NODE_ENV=production

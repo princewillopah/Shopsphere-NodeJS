@@ -1,0 +1,8 @@
+const path = require('path');
+
+// Points the Sequelize CLI at our env-driven config and migrations directory.
+// (.sequelizerc is always loaded as CommonJS, regardless of package "type".)
+module.exports = {
+  config: path.resolve('config', 'config.cjs'),
+  'migrations-path': path.resolve('migrations'),
+};

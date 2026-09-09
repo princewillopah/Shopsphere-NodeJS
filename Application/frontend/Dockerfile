@@ -1,5 +1,5 @@
 # -------------------------------------
-# Stage 1: Build & Dependencies for rontend image
+# Stage 1: Build & Dependencies for frontend image
 # -------------------------------------
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # -------------------------------------
-# Stage 2: Final Lightweight Runtime for rontend image
+# Stage 2: Final Lightweight Runtime for frontend image
 # -------------------------------------
 FROM nginxinc/nginx-unprivileged:alpine
 
