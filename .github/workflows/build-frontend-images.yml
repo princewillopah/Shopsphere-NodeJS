@@ -55,5 +55,5 @@ jobs:
           push: true
           load: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-node-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-node-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-frontend:${{ github.sha }}

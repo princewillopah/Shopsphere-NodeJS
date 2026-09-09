@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # -------------------------------------
-# Stage 2: Final Lightweight Runtime generated for frontend image
+# Stage 2: Final Lightweight Runtime for frontend image
 # -------------------------------------
 FROM nginxinc/nginx-unprivileged:alpine
 
