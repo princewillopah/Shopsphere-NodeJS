@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: princewillopah/shopsphere-nodejs-frontend:latest
+        image: princewillopah/shopsphere-nodejs-ui:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
