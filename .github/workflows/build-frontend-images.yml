@@ -54,5 +54,5 @@ jobs:
           file: ./Application/frontend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodev-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodev-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-node-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-node-frontend:${{ github.sha }}
