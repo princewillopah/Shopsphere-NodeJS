@@ -13,3 +13,6 @@ npm-debug.log*
 # Misc
 .DS_Store
 coverage/
+
+# IDEs and editors
+.idea/

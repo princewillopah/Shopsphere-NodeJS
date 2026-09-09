@@ -19,8 +19,8 @@ spec:
         runAsGroup: 101
       containers:
       - name: frontend
-        image: princewillopah/shopsphere-node-frontend:1.3
-        imagePullPolicy: IfNotPresent
+        image: princewillopah/shopsphere-node-frontend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           name: http

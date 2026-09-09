@@ -13,3 +13,5 @@ dist-ssr/
 # Logs & misc
 *.log
 .DS_Store
+# IDEs and editors
+.idea/

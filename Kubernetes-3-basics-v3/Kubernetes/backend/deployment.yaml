@@ -46,7 +46,7 @@ spec:
       # 4. MAIN APP
       containers:
       - name: backend
-        image: princewillopah/shopsphere-node-backend:1.2
+        image: princewillopah/shopsphere-node-backend:latest
         imagePullPolicy: Always # Never for kind local, IfNotPresent for DockerHub - Never breaks on EKS
         # command / args: If you set them here, they OVERRIDE Dockerfile CMD/ENTRYPOINT
         # Don't set command: ["sh", "-c", "npm start"] - use Dockerfile CMD. Only override for Jobs

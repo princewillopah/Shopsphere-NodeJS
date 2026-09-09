@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFESTS_DIR="$(dirname "$SCRIPT_DIR")/Kubernetes"
 
 cd "$MANIFESTS_DIR" || exit 1
-
+kubectl create namespace ${NAMESPACE} || true
 
 # 1. Scale down deployments first to safely detach volumes
 kubectl scale deployment/db -n ${NAMESPACE} --replicas=0 || true
