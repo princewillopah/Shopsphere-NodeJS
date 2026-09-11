@@ -1,0 +1,90 @@
+name: Build and Push ShopSphere Frontend
+
+on:
+  push:
+    branches: [main]
+    paths: ['Application/frontend/**']
+  pull_request:
+    branches: [main]
+    paths: ['Application/frontend/**']
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Application/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for Frontend Changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'Application/frontend/**'
+
+      - uses: actions/setup-node@v4
+        if: steps.filter.outputs.frontend == 'true'
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Application/frontend/package-lock.json
+
+      - name: Install Dependencies
+        if: steps.filter.outputs.frontend == 'true'
+        run: npm ci
+
+      - name: Run Lint
+        if: steps.filter.outputs.frontend == 'true'
+        run: npm run lint --if-present
+
+      - name: Run Unit Tests
+        if: steps.filter.outputs.frontend == 'true'
+        run: npm test --if-present -- --ci
+
+      - name: Run npm audit
+        if: steps.filter.outputs.frontend == 'true'
+        run: npm audit --audit-level=high || true
+
+      - name: Run Trivy FS Scan
+        if: steps.filter.outputs.frontend == 'true'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: './Application/frontend'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Docker Metadata
+        if: steps.filter.outputs.frontend == 'true'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-ui
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.filter.outputs.frontend == 'true'
+
+      - uses: docker/login-action@v3
+        if: steps.filter.outputs.frontend == 'true'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Frontend
+        if: steps.filter.outputs.frontend == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Application/frontend
+          file: ./Application/frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

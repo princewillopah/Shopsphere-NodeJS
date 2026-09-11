@@ -7,6 +7,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFESTS_DIR="$(dirname "$SCRIPT_DIR")/Kubernetes"
 
 cd "$MANIFESTS_DIR" || exit 1
+pkill -f "port-forward.*shopsphere" && \
+kubectl delete namespace shopsphere --grace-period=0 --force && \
 kubectl create namespace ${NAMESPACE} || true
 
 # 1. Scale down deployments first to safely detach volumes
@@ -24,8 +26,11 @@ kubectl delete job --all -n ${NAMESPACE} || true
 kubectl delete pvc mysql-pvc -n ${NAMESPACE} || true
 
 # 4. Create configs and secrets
-kubectl apply -f secrets/backend.yaml
-kubectl apply -f secrets/aws-s3.yaml
+kubectl apply -f secrets/backend-sealed-secret.yaml
+kubectl apply -f secrets/aws-s3-sealed-secret.yaml
+
+# kubectl apply -f secrets/backend-secret.yaml
+# kubectl apply -f secrets/aws-s3.yaml
 
 kubectl apply -f configmaps/backend.yaml
 kubectl apply -f configmaps/frontend.yaml
@@ -63,7 +68,14 @@ kubectl apply -f frontend/deployment.yaml
 kubectl apply -f frontend/service.yaml
 
 
-# 11. Wait for everything
+# 11. Network Policies
+kubectl apply -f network-policy/backend-allow-frontend.yaml
+kubectl apply -f network-policy/db-allow-only-backend.yaml
+
+
+
+
+# 12. Wait for everything
 echo "Waiting 30 seconds for services to initialize..."
 for i in {30..1}; do
     printf "\r  ⏳ %02d seconds remaining..." $i
@@ -72,11 +84,11 @@ done
 echo ""
 
 
-# 12. Check the status of the pods
+# 13. Check the status of the pods
 kubectl get pods -n shopsphere
 # Should show db, backend, frontend Running
 
-# 13. Wait for everything
+# 14. Wait for everything
 echo "Waiting 10 seconds for services to initialize..."
 for i in {10..1}; do
     printf "\r  ⏳ %02d seconds remaining..." $i
@@ -85,9 +97,11 @@ done
 echo ""
 
 # =================================================================
-# 14. Port forward the services with auto-reconnect loops
+# 15. Port forward the services with auto-reconnect loops
 # =================================================================
 echo "🔌 Setting up persistent port-forwards..."
+
+
 
 # Create a hidden log folder for debugging if things break
 mkdir -p .port_forward_logs

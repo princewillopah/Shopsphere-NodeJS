@@ -7,7 +7,9 @@ COPY package*.json ./
 
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
-RUN npm run build
+ARG VITE_API_URL   # <- socket, must exist
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build  # Vite reads ENV at build time
 
 # -------------------------------------
 # Stage 2: Final Lightweight Runtime for frontend image

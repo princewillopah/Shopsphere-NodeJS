@@ -29,14 +29,7 @@ done
 find "$BASE_DIR" -name "deployment.yaml" | while read -r file; do
     echo "Processing $file"
     sed -i -E "s|(image:\s*princewillopah/shopsphere-node-backend:).*|\1${NEW_TAG}|g" "$file"
-    sed -i -E "s|(image:\s*princewillopah/shopsphere-node-frontend:).*|\1${NEW_TAG}|g" "$file"
-done
-
-# Search for the script file inside the current scripts directory
-find "$SCRIPT_DIR" -name "_2_build_and_push_images.sh" | while read -r file; do
-    echo "Processing $file"
-    # This matches the tag and allows trailing comments/spaces on the same line
-    sed -i -E 's|(image_tag=")[^"]*(".*)|\1'"$NEW_TAG"'\2|g' "$file"
+    sed -i -E "s|(image:\s*princewillopah/shopsphere-nodejs-ui:).*|\1${NEW_TAG}|g" "$file"
 done
 
 

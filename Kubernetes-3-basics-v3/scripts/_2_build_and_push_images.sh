@@ -4,13 +4,16 @@ set -e
 echo "☸️  Building and pushing images to Kubernetes"
 echo ""
 
-REGISTRY="princewillopah" 
-APP_NAME="shopsphere-node"
-image_tag="1.2" # This will be automatically managed by script _1
+REGISTRY="princewillopah"
+IMAGE_TAG="${1:-latest}"
+BACKEND_IMAGE="$REGISTRY/shopsphere-node-backend:$IMAGE_TAG"
+FRONTEND_IMAGE="$REGISTRY/shopsphere-nodejs-ui:$IMAGE_TAG"
 
-# Dynamically target the project root folder (sibling directories backend & frontend)
+# The Kubernetes manifests live in this directory, but the application source
+# used to build the images lives in the sibling Application directory.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="$REPO_ROOT/Application"
 
 echo "$DOCKER_TOKEN1" | docker login -u "$DOCKER_USERNAME1" --password-stdin
 
@@ -19,11 +22,11 @@ echo " ================================================================= "
 echo "📦 Building and pushing images to $REGISTRY..."
 echo " ================================================================= "
 
-docker build -t $REGISTRY/$APP_NAME-backend:$image_tag "$PROJECT_ROOT/backend"
-docker push $REGISTRY/$APP_NAME-backend:$image_tag
+docker build -t "$BACKEND_IMAGE" "$PROJECT_ROOT/backend"
+docker push "$BACKEND_IMAGE"
 
-docker build -t $REGISTRY/$APP_NAME-frontend:$image_tag "$PROJECT_ROOT/frontend"
-docker push $REGISTRY/$APP_NAME-frontend:$image_tag
+docker build -t "$FRONTEND_IMAGE" "$PROJECT_ROOT/frontend"
+docker push "$FRONTEND_IMAGE"
 
 echo ""
 echo " ================================================================= "

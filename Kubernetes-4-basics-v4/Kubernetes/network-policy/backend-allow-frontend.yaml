@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-allow-ingress-and-frontend
+  namespace: shopsphere
+spec:
+  podSelector:
+    matchLabels:
+      app: backend # Target: Apply this rule to the Backend pod
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend # Allow the frontend pod to communicate directly if needed
+        - namespaceSelector: {} # Allow traffic coming from the Ingress Controller namespace (e.g., ingress-nginx)
+      ports:
+        - protocol: TCP
+          port: 5000 # Node.js backend port
+    # backend to backend for health

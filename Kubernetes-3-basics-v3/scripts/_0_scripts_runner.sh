@@ -17,6 +17,6 @@ done
 echo ""
 echo ""
 
-./_2_build_and_push_images.sh
+./_2_build_and_push_images.sh "$1"
 
 

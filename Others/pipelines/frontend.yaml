@@ -1,0 +1,55 @@
+name: Frontend
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['Application/frontend/**']
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    # this makes it use prod vars for main, staging vars for develop
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-ui
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=sha
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Application/frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+
+
+
+
+# 3. Where to configure the vars
+# Go to GitHub > Your Repo > Settings > Environments
+
+# Click New environment
+
+# staging -> Save
+# Inside staging -> Add variable -> Name: VITE_API_URL Value: https://staging.shopsphere.local/api or /staging-api
+# prod -> Save
+# Inside prod -> Add variable -> Name: VITE_API_URL Value: /api
+# Now:
+
+# push to develop branch -> environment: staging -> builds with staging var
+# push to main branch -> environment: prod -> builds with /api
