@@ -11,7 +11,7 @@ ARG VITE_API_URL   # <- socket, must exist
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build  # Vite reads ENV at build time
 
-# -------------------------------------
+# ---------------------------------------------------------------
 # Stage 2: Final Lightweight Runtime for frontend image
 # -------------------------------------
 FROM nginxinc/nginx-unprivileged:alpine
