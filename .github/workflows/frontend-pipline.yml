@@ -1,0 +1,111 @@
+name: Build and Push ShopSphere Frontend
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['Application/frontend/**']
+  pull_request:
+    branches: [main, develop]
+    paths: ['Application/frontend/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    # this makes it use prod vars for main, staging vars for develop
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ./Application/frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: Application/frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Lint
+        run: npm run lint
+
+      - name: Run Unit Tests
+        run: npm test -- --ci
+
+      - name: Run npm audit (prod deps only, fails on high/critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Trivy FS Scan (source deps)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: './Application/frontend'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-ui
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=
+
+      - uses: docker/setup-buildx-action@v4
+
+      # Build locally only — no push yet. Nothing hits the registry
+      # until it's scanned. On PR runs, this is the entire pipeline.
+      - name: Build image (local, unpushed)
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Application/frontend
+          file: ./Application/frontend/Dockerfile
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trivy Image Scan (built artifact)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'image'
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+      # Only authenticate to and push the registry on an actual
+      # merge to main — never on pull_request.
+      - uses: docker/login-action@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Frontend Image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v7
+        with:
+          context: ./Application/frontend
+          file: ./Application/frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
