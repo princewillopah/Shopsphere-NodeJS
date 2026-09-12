@@ -6,11 +6,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN if [ -f package-lock.json ]; then \
-      npm ci --omit=dev; \
-    else \
-      npm install --omit=dev; \
-    fi
+RUN npm ci --omit=dev; 
 
 COPY . .
 RUN npm prune --production
