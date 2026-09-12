@@ -1,7 +1,7 @@
 # -------------------------------------
 # Stage 1: Build & Dependencies for backend image
 # -------------------------------------
-FROM node:20 AS builder
+FROM node:22 AS builder
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -15,7 +15,7 @@ RUN npm prune --production
 # -----------------------------------------------
 # Stage 2: Final Lightweight Runtime for backend image
 # -------------------------------------
-FROM node:20-alpine
+FROM node:22-alpine
 ENV NODE_ENV=production
 WORKDIR /usr/src/app
 
