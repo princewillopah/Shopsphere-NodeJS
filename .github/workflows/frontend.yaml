@@ -2,11 +2,17 @@ name: Build and Push ShopSphere Frontend
 
 on:
   push:
-    branches: [main]
-    paths: ['Application/frontend/**']
+    branches:
+      - main 
+    paths:
+      - 'Application/frontend/**'
+      
   pull_request:
-    branches: [main]
-    paths: ['Application/frontend/**']
+    branches:
+      - main
+    paths:
+      - 'Application/frontend/**'
+
 
 jobs:
   build-frontend:
