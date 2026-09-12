@@ -1,7 +1,7 @@
 # -------------------------------------
 # Stage 1: Build & Dependencies for frontend imagejjj
 # -------------------------------------
-FROM node:20-alpine AS build
+FROM node:24 AS build
 WORKDIR /app
 COPY package*.json ./
 

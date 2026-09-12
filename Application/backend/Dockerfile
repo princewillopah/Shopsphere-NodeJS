@@ -1,7 +1,7 @@
 # -------------------------------------
 # Stage 1: Build & Dependencies for backend image
 # -------------------------------------
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 WORKDIR /usr/src/app
 
 COPY package*.json ./
