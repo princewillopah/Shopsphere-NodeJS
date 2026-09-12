@@ -13,7 +13,7 @@ RUN npm run build  # Vite reads ENV at build time
 
 # ---------------------------------------------------------------
 # Stage 2: Final Lightweight Runtime for frontend image
-# -------------------------------------
+# ---------------------------------------------------------------------------------------------------
 FROM nginxinc/nginx-unprivileged:alpine
 
 # Copy static assets
