@@ -5,7 +5,7 @@ FROM node:24 AS build
 WORKDIR /app
 COPY package*.json ./
 
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN npm ci --omit=dev; 
 COPY . .
 ARG VITE_API_URL   # <- socket, must exist
 ENV VITE_API_URL=$VITE_API_URL
