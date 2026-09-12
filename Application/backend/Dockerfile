@@ -1,8 +1,10 @@
 # -------------------------------------
 # Stage 1: Build & Dependencies for backend image
-# -------------------------------------
+# ---------------------------------------
 FROM node:22 AS builder
 WORKDIR /usr/src/app
+
+RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
 
