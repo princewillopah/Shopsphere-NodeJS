@@ -12,7 +12,7 @@ COPY . .
 RUN npm prune --production
 
 
-# ---------------------------------------
+# -----------------------------------------------
 # Stage 2: Final Lightweight Runtime for backend image
 # -------------------------------------
 FROM node:20-alpine
