@@ -6,7 +6,7 @@ on:
       - main 
     paths:
       - 'Application/frontend/**'
-      
+
   pull_request:
     branches:
       - main
@@ -56,7 +56,7 @@ jobs:
 
       - name: Run Trivy FS Scan
         # if: steps.filter.outputs.frontend == 'true'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: './Application/frontend'
