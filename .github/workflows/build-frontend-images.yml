@@ -15,7 +15,7 @@ on:
     #   - 'Application/backend/**'
 
 jobs:
-  # --- FRONTEND BUILD JOB ------
+  # --- FRONTEND BUILD JOB ---------------
   build-frontend:
     name: Build Frontend Image
     runs-on: ubuntu-latest
