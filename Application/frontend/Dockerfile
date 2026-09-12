@@ -1,11 +1,11 @@
 # -------------------------------------
 # Stage 1: Build & Dependencies for frontend imagejjj
 # -------------------------------------
-FROM node:24 AS build
+FROM node:20 AS build
 WORKDIR /app
 COPY package*.json ./
 
-RUN npm ci --omit=dev; 
+RUN npm install
 COPY . .
 ARG VITE_API_URL   # <- socket, must exist
 ENV VITE_API_URL=$VITE_API_URL
