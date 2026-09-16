@@ -10,7 +10,7 @@ export const notFound = (_req, res) => {
  * same JSON shape as the original Node API.
  */
 // eslint-disable-next-line no-unused-vars
-export const errorHandler = (err, _req, res, _next) => {
+export const errorHandler = (err, req, res, _next) => {
   if (err instanceof AppError) {
     return res.status(err.status).json({ message: err.message });
   }
@@ -23,7 +23,6 @@ export const errorHandler = (err, _req, res, _next) => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(413).json({ message: 'Uploaded file is too large' });
   }
-  // eslint-disable-next-line no-console
-  console.error('Unhandled error:', err);
+  req.log.error({ err }, 'Unhandled error');
   return res.status(500).json({ message: 'Internal server error' });
 };

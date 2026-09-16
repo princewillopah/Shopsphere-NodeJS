@@ -1,0 +1,19 @@
+{{- if and .Values.frontend.enabled .Values.frontend.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "shopsphere.frontend.fullname" . }}
+  labels:
+    {{- include "shopsphere.frontend.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+
+  selector:
+    {{- include "shopsphere.frontend.selectorLabels" . | nindent 4 }}
+
+  ports:
+    - name: http
+      port: {{ .Values.frontend.service.port }}
+      targetPort: {{ .Values.frontend.service.targetPort }}
+      protocol: TCP
+{{- end }}

@@ -1,0 +1,45 @@
+{{- if and .Values.backend.enabled .Values.podDisruptionBudget.backend.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "shopsphere.backend.fullname" . }}
+  labels:
+    {{- include "shopsphere.backend.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.backend.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "shopsphere.backend.selectorLabels" . | nindent 6 }}
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.podDisruptionBudget.frontend.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "shopsphere.frontend.fullname" . }}
+  labels:
+    {{- include "shopsphere.frontend.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.frontend.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "shopsphere.frontend.selectorLabels" . | nindent 6 }}
+{{- end }}
+
+{{/*
+{{- if and .Values.mysql.enabled .Values.mysql.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "shopsphere.mysql.fullname" . }}
+  labels:
+    {{- include "shopsphere.mysql.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: {{ .Values.mysql.pdb.maxUnavailable }}
+  selector:
+    matchLabels:
+      {{- include "shopsphere.mysql.selectorLabels" . | nindent 6 }}
+{{- end }}
+*/}}

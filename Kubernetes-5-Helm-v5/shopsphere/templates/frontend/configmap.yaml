@@ -1,0 +1,11 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "shopsphere.fullname" . }}-frontend-config
+  labels:
+    {{- include "shopsphere.frontend.labels" . | nindent 4 }}
+data:
+  VITE_API_URL: {{ .Values.frontendConfig.VITE_API_URL | quote }}
+  VITE_PLACEHOLDER_IMAGE: {{ .Values.frontendConfig.VITE_PLACEHOLDER_IMAGE | quote }}
+{{- end }}
