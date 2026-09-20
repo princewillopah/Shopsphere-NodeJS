@@ -7,12 +7,19 @@
 # PROMETHEUS
 # ------------------------------------------------------------
 prometheus:
-
   enabled: true
 
-  prometheusSpec:
+  # Scrape everything by default, not just chart-labeled resources.
+  # Without this, ServiceMonitors outside the release namespace are ignored.
+  serviceMonitorSelectorNilUsesHelmValues: false
+  podMonitorSelectorNilUsesHelmValues: false
+  ruleSelectorNilUsesHelmValues: false
 
-    
+  prometheusSpec:
+    # Discover ServiceMonitors/PodMonitors from all namespaces. # THIS IS WHAT MAKES YOUR APP VISIBLE 
+
+
+
    
 
     serviceMonitorNamespaceSelector: {}
@@ -54,17 +61,10 @@ prometheus:
     scrapeInterval: 30s
     evaluationInterval: 30s
 
-
-    # Discover ServiceMonitors/PodMonitors from all namespaces. # THIS IS WHAT MAKES YOUR APP VISIBLE 
-
     # podAntiAffinity: "hard"
     # replicas: 2
     # walCompression: true
-    # Scrape everything by default, not just chart-labeled resources.
-    # Without this, ServiceMonitors outside the release namespace are ignored.
-    serviceMonitorSelectorNilUsesHelmValues: false
-    podMonitorSelectorNilUsesHelmValues: false
-    ruleSelectorNilUsesHelmValues: false
+
 
 # ------------------------------------------------------------
 # GRAFANA

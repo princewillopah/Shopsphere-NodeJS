@@ -37,20 +37,16 @@ spec:
 
       containers:
         - name: frontend
-
           image: {{- if .Values.frontend.image.digest }}
             "{{ .Values.frontend.image.repository }}@{{ .Values.frontend.image.digest }}"
           {{- else }}
             "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
           {{- end }}
-
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
-
           ports:
             - name: http
               containerPort: {{ .Values.frontend.container.port }}
               protocol: TCP
-
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
 
@@ -88,6 +84,24 @@ spec:
             - name: tmp
               mountPath: {{ .Values.frontend.tmpVolume.mountPath }}
           {{- end }}
+
+        # 🚀 ADDED: The Prometheus Exporter Sidecar Container
+        - name: nginx-exporter
+          image: "nginx/nginx-prometheus-exporter:1.5.1"
+          args:
+            # Assumes Nginx is listening on the container port defined in values.yaml
+            - "-nginx.scrape-uri=http://127.0.0.1:{{ .Values.frontend.container.port }}/nginx_status"
+          ports:
+            - name: metrics
+              containerPort: 9113
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
 
       {{- if .Values.frontend.tmpVolume.enabled }}
       volumes:
