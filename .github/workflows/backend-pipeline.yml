@@ -85,7 +85,7 @@ jobs:
         with:
           scan-type: 'image'
           # image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-backend:sha-${{ github.sha }}  # Use the git SHA tag specifically for local scanning
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[2] || fromJSON(steps.meta.outputs.json).tags[1] || fromJSON(steps.meta.outputs.json).tags[0] }}  # Use the git SHA tag specifically for local scanning
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
 
