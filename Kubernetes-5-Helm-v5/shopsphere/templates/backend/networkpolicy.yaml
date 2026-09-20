@@ -18,6 +18,9 @@ spec:
         - podSelector:
             matchLabels:
               {{- include "shopsphere.frontend.selectorLabels" . | nindent 14 }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - protocol: TCP
           port: {{ .Values.backend.service.targetPort }}

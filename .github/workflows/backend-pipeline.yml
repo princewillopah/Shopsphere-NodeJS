@@ -3,6 +3,7 @@ name: Build and Push ShopSphere Backend
 on:
   push:
     branches: [main, develop]
+    tags: ['v*.*.*', '*.*.*'] # 👈 Triggers the pipeline when a version tag is pushed
     paths: ['Application/backend/**']
   pull_request:
     branches: [main, develop]
@@ -60,6 +61,7 @@ jobs:
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=semver,pattern={{version}}
             type=sha,prefix=
 
       - uses: docker/setup-buildx-action@v4
@@ -82,7 +84,8 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'image'
-          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          # image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-backend:sha-${{ github.sha }}  # Use the git SHA tag specifically for local scanning
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
 

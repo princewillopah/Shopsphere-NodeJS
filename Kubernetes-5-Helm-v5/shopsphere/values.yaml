@@ -462,3 +462,12 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 topologySpreadConstraints: []
+
+
+# ============================================================
+# MONITORING
+# ============================================================
+
+monitoring:
+  serviceMonitor:
+    enabled: true

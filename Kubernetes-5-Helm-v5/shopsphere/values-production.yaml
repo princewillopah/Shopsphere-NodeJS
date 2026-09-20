@@ -13,10 +13,14 @@ config:
 
 backend:
   replicaCount: 2
+  image:
+    pullPolicy: Always
 
 
 frontend:
   replicaCount: 2
+  image:
+    pullPolicy: Always
 
 
 mysql:

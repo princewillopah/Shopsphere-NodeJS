@@ -1,0 +1,10 @@
+# prometheus CRD
+serviceMonitorNamespaceSelector:
+  matchNames:
+    - shopsphere
+    - profilezee
+    - payments
+
+serviceMonitorSelector:
+  matchLabels:
+    release: kube-prometheus-stack

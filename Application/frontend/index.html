@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ShopSphere</title>
 
@@ -12,35 +11,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- Tailwind via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-              display: ['Playfair Display', 'serif']
-            },
-            colors: {
-              primary: {
-                600: '#4f46e5',
-                700: '#4338ca',
-              },
-              dark: {
-                800: '#1e293b',
-                900: '#0f172a',
-              }
-            },
-            backgroundImage: {
-              'hero': 'url("https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")',
-              'footer': 'url("https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")',
-              'features': 'url("https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")'
-            }
-          }
-        }
-      }
-    </script>
     <style>
       body { 
         font-family: 'Inter', sans-serif;
@@ -51,16 +21,27 @@
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
       }
       .btn-primary { 
-        @apply bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300;
+        background: #4f46e5;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 300ms;
       }
       .btn-outline {
-        @apply border border-white text-white hover:bg-white hover:text-gray-900 px-6 py-3 rounded-lg font-medium transition-all duration-300;
+        border: 1px solid white;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 300ms;
       }
-      .nav-link {
-        @apply text-gray-700 hover:text-primary-600 transition-colors duration-300;
-      }
+      .nav-link { transition: color 300ms; }
       .feature-card {
-        @apply bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-6 shadow-lg;
+        background: rgb(255 255 255 / 90%);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%);
       }
 
       .text-dark {
@@ -69,27 +50,30 @@
       .text-muted {
         color: #64748b;
       }
-      .feature-card h3 {
-        @apply text-dark;
-      }
-      .feature-card p {
-        @apply text-muted;
-      }
-      footer a:not(.btn) {
-        @apply text-gray-400 hover:text-white;
-      }
+      .feature-card h3 { color: #1e293b; }
+      .feature-card p { color: #64748b; }
+      footer a:not(.btn) { color: #9ca3af; }
 
  /* Primary Button - Brighter version */
   .btn-primary {
-    @apply bg-primary-500 hover:bg-primary-400 text-white px-6 py-3 rounded-lg font-medium 
-           transition-all duration-300 shadow-md hover:shadow-lg;
+    background: #6366f1;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 300ms;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%);
   }
 
   /* Outline Button - More visible version */
   .btn-outline {
-    @apply border-2 border-white text-white hover:bg-white hover:text-gray-900 px-6 py-3 
-           rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg
-           hover:border-primary-100;
+    border: 2px solid white;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 300ms;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%);
   }
 
   /* Make outline button text bolder */
@@ -98,41 +82,61 @@
   }
 
  .feature-card {
-    @apply bg-white bg-opacity-90 backdrop-blur-sm rounded-xl p-8 shadow-lg hover:shadow-xl 
-           transition-shadow duration-300;
+    background: rgb(255 255 255 / 90%);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%);
+    transition: box-shadow 300ms;
   }
   
 
 /* Dark feature cards */
   .dark-feature-card {
-    @apply bg-gray-900 bg-opacity-80 rounded-xl p-8 shadow-lg hover:shadow-xl 
-           transition-shadow duration-300;
+    background: rgb(17 24 39 / 80%);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 10%);
+    transition: box-shadow 300ms;
   }
   
   .dark-feature-card h3 {
-    @apply text-white text-2xl font-bold mb-3;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
   }
   
   .dark-feature-card p {
-    @apply text-gray-300;
+    color: #d1d5db;
   }
   
   .dark-feature-card .icon {
-    @apply text-primary-400 text-4xl mb-4;
+    color: #818cf8;
+    font-size: 2.25rem;
+    margin-bottom: 1rem;
   }
 
   /* Hero buttons for dark backgrounds */
   .hero-btn-solid {
-    @apply bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-           border border-white border-opacity-50 hover:border-opacity-100 
-           px-6 py-3 rounded-lg font-medium transition-all duration-300 
-           shadow-md hover:shadow-lg;
+    background: rgb(255 255 255 / 20%);
+    color: white;
+    border: 1px solid rgb(255 255 255 / 50%);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 300ms;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%);
   }
   
   .hero-btn-outline {
-    @apply bg-transparent hover:bg-white hover:bg-opacity-10 text-white 
-           border-2 border-white px-6 py-3 rounded-lg font-medium 
-           transition-all duration-300 shadow-md hover:shadow-lg;
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 300ms;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%);
   }
 
 /* If you want even wider cards, adjust the grid columns */
