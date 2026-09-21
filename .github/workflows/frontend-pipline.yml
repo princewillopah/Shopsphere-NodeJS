@@ -93,15 +93,15 @@ jobs:
       # Authenticate to Docker Hub for BOTH main and develop pushes (but skip on Pull Requests)
       # merge to main — never on pull_request.
       - uses: docker/login-action@v4
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-        # if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+        if: contains(github.ref, 'main') || contains(github.ref, 'develop') || contains(github.head_ref, 'develop')
+        # if: contains(github.ref, 'main') || contains(github.ref, 'develop') || contains(github.head_ref, 'develop')
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       # Push the validated image to Docker Hub
       - name: Push Frontend Image
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        if: contains(github.ref, 'main') || contains(github.ref, 'develop') || contains(github.head_ref, 'develop')
         # if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
         uses: docker/build-push-action@v7
         with:
