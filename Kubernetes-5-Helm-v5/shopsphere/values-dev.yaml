@@ -1,0 +1,59 @@
+global:
+  environment: dev
+
+
+config:
+  NODE_ENV: development
+
+  CORS_ALLOWED_ORIGINS: "*"
+
+  SEED_ENABLED: "true"
+
+
+backend:
+  replicaCount: 2
+  image:
+    pullPolicy: Always
+
+
+frontend:
+  replicaCount: 2
+  image:
+    pullPolicy: Always
+
+
+mysql:
+  enabled: true
+
+  pdb:
+    enabled: false
+
+
+autoscaling:
+  backend:
+    enabled: false
+
+  frontend:
+    enabled: false
+
+
+podDisruptionBudget:
+  backend:
+    enabled: false
+
+  frontend:
+    enabled: false
+
+
+ingress:
+  enabled: true
+  className: nginx
+  host: shopsphere.local
+
+
+migration:
+  enabled: true
+
+
+seed:
+  enabled: true

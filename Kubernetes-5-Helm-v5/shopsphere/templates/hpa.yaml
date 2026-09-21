@@ -1,0 +1,67 @@
+{{- if and .Values.backend.enabled .Values.autoscaling.backend.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "shopsphere.backend.fullname" . }}
+  labels:
+    {{- include "shopsphere.backend.labels" . | nindent 4 }}
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "shopsphere.backend.fullname" . }}
+
+  minReplicas: {{ .Values.autoscaling.backend.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.backend.maxReplicas }}
+
+  metrics:
+    {{- if .Values.autoscaling.backend.metrics.cpu.enabled }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.backend.metrics.cpu.averageUtilization }}
+    {{- end }}
+
+    {{- if .Values.autoscaling.backend.metrics.memory.enabled }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.backend.metrics.memory.averageUtilization }}
+    {{- end }}
+
+{{- end }}
+
+{{- if and .Values.frontend.enabled .Values.autoscaling.frontend.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "shopsphere.frontend.fullname" . }}
+  labels:
+    {{- include "shopsphere.frontend.labels" . | nindent 4 }}
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "shopsphere.frontend.fullname" . }}
+
+  minReplicas: {{ .Values.autoscaling.frontend.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.frontend.maxReplicas }}
+
+  metrics:
+    {{- if .Values.autoscaling.frontend.metrics.cpu.enabled }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.frontend.metrics.cpu.averageUtilization }}
+    {{- end }}
+
+{{- end }}

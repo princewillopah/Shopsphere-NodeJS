@@ -1,0 +1,31 @@
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "shopsphere.fullname" . }}-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+    release: kube-prometheus-stack
+
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ .Release.Name }}
+
+  endpoints:
+    - port: metrics   # This points to the metrics port added to the deployment/service
+      path: /metrics
+      scheme: http
+      interval: 30s
+      scrapeTimeout: 10s
+{{- end }}

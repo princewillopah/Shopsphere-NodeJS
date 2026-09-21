@@ -1,0 +1,113 @@
+{{- if .Values.mysql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "shopsphere.mysql.fullname" . }}
+  labels:
+    {{- include "shopsphere.mysql.labels" . | nindent 4 }}
+
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+
+  strategy:
+    type: {{ .Values.mysql.strategy.type }}
+
+  selector:
+    matchLabels:
+      {{- include "shopsphere.mysql.selectorLabels" . | nindent 6 }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "shopsphere.mysql.labels" . | nindent 8 }}
+
+    spec:
+      terminationGracePeriodSeconds: 30
+
+      containers:
+        - name: mysql
+
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+
+          args:
+            {{- toYaml .Values.mysql.args | nindent 12 }}
+
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_ROOT_PASSWORD
+
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_DATABASE
+
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_USER
+
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_PASSWORD
+
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - >
+                  mysqladmin ping
+                  -h 127.0.0.1
+                  -u root
+                  -p"$MYSQL_ROOT_PASSWORD"
+            initialDelaySeconds: {{ .Values.mysql.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.mysql.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.mysql.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.mysql.probes.readiness.failureThreshold }}
+
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - >
+                  mysqladmin ping
+                  -h 127.0.0.1
+                  -u root
+                  -p"$MYSQL_ROOT_PASSWORD"
+            initialDelaySeconds: {{ .Values.mysql.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.mysql.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.mysql.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.mysql.probes.liveness.failureThreshold }}
+
+          {{- with .Values.mysql.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: {{ include "shopsphere.mysql.fullname" . }}
+{{- end }}

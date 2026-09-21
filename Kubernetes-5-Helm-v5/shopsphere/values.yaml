@@ -1,0 +1,473 @@
+# ============================================================
+# ShopSphere
+# Base Helm Values
+#
+# Environment-specific configuration belongs in:
+#   values-dev.yaml
+#   values-staging.yaml
+#   values-production.yaml
+# ============================================================
+
+
+# ============================================================
+# HELM CHART METADATA
+# ============================================================
+nameOverride: ""
+fullnameOverride: ""
+
+# ============================================================
+# GLOBAL
+# ============================================================
+
+global:
+
+  environment: dev
+
+
+# ============================================================
+# BACKEND
+# ============================================================
+
+backend:
+
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: princewillopah/shopsphere-backend
+    # Do NOT use latest.
+    # tag: "1.0.0"
+    tag: "05ab8c1"
+    # Production can use an immutable digest instead.
+    digest: ""
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 5000
+    targetPort: 5000
+
+  container:
+    port: 5000
+
+  terminationGracePeriodSeconds: 30
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  probes:
+
+    readiness:
+      enabled: true
+      path: /health
+      port: 5000
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
+
+    liveness:
+      enabled: true
+      path: /health
+      port: 5000
+      initialDelaySeconds: 30
+      periodSeconds: 20
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
+
+  securityContext:
+    pod:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+
+    container:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+
+  tmpVolume:
+    enabled: true
+    mountPath: /tmp
+
+  initContainers:
+    waitForDatabase:
+      enabled: true
+      image:
+        repository: mysql
+        tag: "8.0"
+        pullPolicy: IfNotPresent
+
+      resources:
+        requests:
+          cpu: "20m"
+          memory: "32Mi"
+        limits:
+          cpu: "50m"
+          memory: "64Mi"
+
+  affinity: {}
+  topologySpreadConstraints: []
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+  podLabels: {}
+
+
+# ============================================================
+# FRONTEND
+# ============================================================
+
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: princewillopah/shopsphere-nodejs-ui
+    # tag: "1.0.0"
+    tag: "latest"
+    digest: ""
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+
+  container:
+    port: 8080
+
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+  probes:
+    readiness:
+      enabled: true
+      path: /
+      port: http
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
+
+    liveness:
+      enabled: true
+      path: /
+      port: http
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 2
+      successThreshold: 1
+      failureThreshold: 3
+
+  securityContext:
+    pod:
+      runAsNonRoot: true
+      runAsUser: 101
+      runAsGroup: 101
+      fsGroup: 101
+      seccompProfile:
+        type: RuntimeDefault
+
+    container:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+
+  tmpVolume:
+    enabled: true
+    mountPath: /tmp
+
+  affinity: {}
+  topologySpreadConstraints: []
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+  podLabels: {}
+
+
+# ============================================================
+# MYSQL
+# ============================================================
+
+mysql:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: mysql
+    tag: "8.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3306
+    targetPort: 3306
+  strategy:
+    type: Recreate
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    storageClass: ""
+  args:
+    - "--character-set-server=utf8mb4"
+    - "--collation-server=utf8mb4_unicode_ci"
+  probes:
+    readiness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+    liveness:
+      initialDelaySeconds: 45
+      periodSeconds: 1
+      timeoutSeconds: 5
+      failureThreshold: 6
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  podSecurityContext: {}
+  containerSecurityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+
+# ============================================================
+# APPLICATION CONFIGURATION
+# ============================================================
+
+config:
+  DB_HOST: db
+  DB_PORT: "3306"
+  DB_NAME: shopsphere
+  NODE_ENV: production
+  SERVER_PORT: "5000"
+  JWT_EXPIRATION_MS: "604800000"
+  CORS_ALLOWED_ORIGINS: "*"
+  MAX_UPLOAD_MB: "10"
+  STORAGE_PROVIDER: s3
+  S3_BUCKET: shopsphere-nodejs-images-bucket
+  AWS_REGION: us-east-1
+  S3_KEY_PREFIX: products/
+  S3_PUBLIC_BASE_URL: ""
+  PLACEHOLDER_IMAGE_URL: "https://placehold.co/600x400?text=No+Image"
+  SEED_ENABLED: "true"
+  SEED_ADMIN_NAME: Admin
+  SEED_ADMIN_EMAIL: admin@shopsphere.local
+  DB_POOL_MAX: "10"
+  OBSERVABILITY_SERVICE_NAME: shopsphere-backend
+  LOG_LEVEL: info
+  METRICS_ENABLED: "true"
+  OTEL_ENABLED: "false"
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""
+
+
+# ============================================================
+# FRONTEND BUILD CONFIGURATION
+#
+# IMPORTANT:
+# VITE_* variables are compiled into the frontend image
+# during the Vite build.
+# ============================================================
+frontendConfig:
+  VITE_API_URL: /api
+  VITE_PLACEHOLDER_IMAGE: "https://placehold.co/600x400?text=No+Image"
+
+
+# ============================================================
+# SECRETS
+#
+# Helm does NOT create application secrets by default.
+#
+# Existing secrets are expected to be supplied by the
+# cluster's secret-management mechanism.
+# ============================================================
+
+secrets:
+  existingDatabaseSecret: shopsphere-secrets
+  existingS3Secret: shopsphere-s3-secrets
+
+
+# ============================================================
+# MIGRATION JOB
+# ============================================================
+
+migration:
+  enabled: true
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  image:
+    repository: princewillopah/shopsphere-node-backend
+    # tag: "1.0.0"
+    tag: "latest"
+    digest: ""
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "300m"
+      memory: "512Mi"
+
+
+# ============================================================
+# SEED JOB
+# ============================================================
+
+seed:
+  enabled: true
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  image:
+    repository: princewillopah/shopsphere-node-backend
+    # tag: "1.0.0"
+    tag: "latest"
+    digest: ""
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "300m"
+      memory: "512Mi"
+
+
+# ============================================================
+# HORIZONTAL POD AUTOSCALER
+# ============================================================
+
+autoscaling:
+  backend:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    metrics:
+      cpu:
+        enabled: true
+        averageUtilization: 70
+      memory:
+        enabled: true
+        averageUtilization: 80
+    # targetCPUUtilizationPercentage: 70
+    # targetMemoryUtilizationPercentage: 80
+
+
+  frontend:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    metrics:
+      cpu:
+        enabled: true
+        averageUtilization: 70
+      memory:
+        enabled: true
+        averageUtilization: 80
+    # targetCPUUtilizationPercentage: 70
+    # targetMemoryUtilizationPercentage: 80
+
+
+# ============================================================
+# POD DISRUPTION BUDGET
+# ============================================================
+
+podDisruptionBudget:
+  backend:
+    enabled: false
+    minAvailable: 1
+  frontend:
+    enabled: false
+    minAvailable: 1
+
+
+# ============================================================
+# INGRESS
+# ============================================================
+
+ingress:
+  enabled: true
+  className: nginx
+  host: shopsphere.local
+  annotations: {}
+  tls: []
+
+
+# ============================================================
+# NETWORK POLICIES
+# ============================================================
+
+networkPolicy:
+  enabled: true
+  backend:
+    enabled: true
+  mysql:
+    enabled: true
+
+
+# ============================================================
+# SERVICE ACCOUNT
+# ============================================================
+
+serviceAccount:
+  create: true
+  automountServiceAccountToken: false
+  annotations: {}
+  name: ""
+
+
+# ============================================================
+# GLOBAL POD SCHEDULING DEFAULTS
+# ============================================================
+
+podAnnotations: {}
+podLabels: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+
+# ============================================================
+# MONITORING
+# ============================================================
+
+monitoring:
+  serviceMonitor:
+    enabled: true

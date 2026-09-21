@@ -104,6 +104,63 @@ npm start           # http://localhost:5000
 
 Swagger UI: `http://localhost:5000/docs`.
 
+## Observability
+
+The backend exposes application telemetry for Prometheus, Loki, Alloy, and
+Tempo without requiring telemetry services to be present at startup.
+
+### Prometheus metrics
+
+`GET /metrics` returns Prometheus text-format metrics. It includes Node.js
+runtime/process metrics and these application metrics:
+
+- `shopsphere_http_requests_total`
+- `shopsphere_http_request_duration_seconds`
+
+The HTTP metric labels are `method`, `route`, and `status_code`. The route label
+uses Express route templates instead of raw URLs to avoid high-cardinality labels.
+Configure Prometheus to scrape the backend Service on port `5000` and path
+`/metrics`.
+
+### Loki and Alloy logs
+
+Requests are written as one JSON object per line to stdout. Kubernetes, Docker,
+systemd, or Alloy can collect stdout/journal logs and forward them to Loki.
+Authorization and cookie headers are redacted. Set `LOG_LEVEL` to `debug`,
+`info`, `warn`, or `error` as needed.
+
+### Tempo traces
+
+OpenTelemetry tracing is disabled by default. Enable it after an Alloy or
+OpenTelemetry Collector OTLP HTTP receiver is available:
+
+```bash
+OTEL_ENABLED=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy.monitoring.svc.cluster.local:4318/v1/traces
+OBSERVABILITY_SERVICE_NAME=shopsphere-backend
+```
+
+The backend instruments incoming HTTP/Express requests, outgoing HTTP calls,
+and Sequelize database operations. Export traces to Alloy or an OpenTelemetry
+Collector, then configure that collector to send them to Tempo. Do not expose
+Tempo or an OTLP receiver directly to the public internet.
+
+### Kubernetes scrape example
+
+The application still needs a Prometheus scrape configuration or ServiceMonitor.
+For a simple Prometheus configuration, scrape the backend Service:
+
+```yaml
+scrape_configs:
+  - job_name: shopsphere-backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['shopsphere-backend.shopsphere.svc.cluster.local:5000']
+```
+
+If the Service is named `backend` in your current chart, use
+`backend.shopsphere.svc.cluster.local:5000` instead.
+
 ## Deploy on EC2 (systemd, no Docker)
 
 ```bash

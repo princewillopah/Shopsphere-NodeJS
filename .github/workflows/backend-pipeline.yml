@@ -3,6 +3,7 @@ name: Build and Push ShopSphere Backend
 on:
   push:
     branches: [main, develop]
+    # tags: ['v*.*.*', '*.*.*'] # 👈 Triggers the pipeline when a version tag is pushed
     paths: ['Application/backend/**']
   pull_request:
     branches: [main, develop]
@@ -89,13 +90,13 @@ jobs:
       # Only authenticate to and push on an actual merge to main or develop —
       # never on pull_request.
       - uses: docker/login-action@v4
-        if: github.event_name == 'push'
+        # if: github.event_name == 'push'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push Backend Image
-        if: github.event_name == 'push'
+        # if: github.event_name == 'push'
         uses: docker/build-push-action@v7
         with:
           context: ./Application/backend

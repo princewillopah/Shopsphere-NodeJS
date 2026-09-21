@@ -1,0 +1,19 @@
+{{- if .Values.mysql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    {{- include "shopsphere.mysql.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.mysql.service.type }}
+
+  selector:
+    {{- include "shopsphere.mysql.selectorLabels" . | nindent 4 }}
+
+  ports:
+    - name: mysql
+      port: {{ .Values.mysql.service.port }}
+      targetPort: {{ .Values.mysql.service.targetPort }}
+      protocol: TCP
+{{- end }}
