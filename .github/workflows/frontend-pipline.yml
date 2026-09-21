@@ -86,7 +86,7 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'image'
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-ui:${{ github.ref == 'refs/heads/main' && 'latest' || 'develop' }}
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-ui:local-scan
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
 
