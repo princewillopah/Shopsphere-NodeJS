@@ -36,7 +36,7 @@ jobs:
           cache-dependency-path: Application/frontend/package-lock.json
 
 
-      - name: Check variables
+      - name: Step to Check variables
         run: |
           [ -n "${{ vars.ECR_REGISTRY }}" ] && echo "ECR_REGISTRY set" || echo "ECR_REGISTRY EMPTY"
           [ -n "${{ vars.AWS_ROLE_ARN }}" ] && echo "AWS_ROLE_ARN set" || echo "AWS_ROLE_ARN EMPTY"

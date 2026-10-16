@@ -35,7 +35,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Application/backend/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install Dependency
         run: npm ci
 
       - name: Run Lint
