@@ -35,6 +35,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Application/frontend/package-lock.json
 
+
+      - name: Check variables
+        run: |
+          [ -n "${{ vars.ECR_REGISTRY }}" ] && echo "ECR_REGISTRY set" || echo "ECR_REGISTRY EMPTY"
+          [ -n "${{ vars.AWS_ROLE_ARN }}" ] && echo "AWS_ROLE_ARN set" || echo "AWS_ROLE_ARN EMPTY"
+          [ -n "${{ vars.AWS_REGION }}" ] && echo "AWS_REGION set" || echo "AWS_REGION EMPTY"
+
+
       - name: Install Dependencies
         run: npm ci
 
