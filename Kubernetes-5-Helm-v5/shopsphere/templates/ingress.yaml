@@ -39,7 +39,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "shopsphere.frontend.fullname" . }}
+                name: frontend
                 port:
                   number: {{ .Values.frontend.service.port }}
 

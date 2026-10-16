@@ -14,7 +14,7 @@ spec:
 
   selector:
     matchLabels:
-      {{- include "shopsphere.mysql.selectorLabels" . | nindent 6 }}
+      {{- include "shopsphere.mysql.labels" . | nindent 8 }}
 
   template:
     metadata:
@@ -26,44 +26,35 @@ spec:
 
       containers:
         - name: mysql
-
           image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
-
           imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
-
           args:
             {{- toYaml .Values.mysql.args | nindent 12 }}
-
           ports:
             - name: mysql
               containerPort: 3306
               protocol: TCP
-
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingDatabaseSecret }}
                   key: MYSQL_ROOT_PASSWORD
-
             - name: MYSQL_DATABASE
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingDatabaseSecret }}
                   key: MYSQL_DATABASE
-
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingDatabaseSecret }}
                   key: MYSQL_USER
-
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.existingDatabaseSecret }}
                   key: MYSQL_PASSWORD
-
           resources:
             {{- toYaml .Values.mysql.resources | nindent 12 }}
 
@@ -81,7 +72,6 @@ spec:
             periodSeconds: {{ .Values.mysql.probes.readiness.periodSeconds }}
             timeoutSeconds: {{ .Values.mysql.probes.readiness.timeoutSeconds }}
             failureThreshold: {{ .Values.mysql.probes.readiness.failureThreshold }}
-
           livenessProbe:
             exec:
               command:
@@ -106,8 +96,29 @@ spec:
             - name: mysql-data
               mountPath: /var/lib/mysql
 
+        # # exporter for mysql
+        # - name: mysqld-exporter
+        #   image: prom/mysqld-exporter:v0.15.1
+        #   args:
+        #   args:
+        #     - --config.my-cnf=/.my.cnf
+        #     - --mysqld.address=db:3306
+
+        #   ports:
+        #     - containerPort: 9104
+        #       name: metrics
+        #   volumeMounts:
+        #     - name: mysql-exporter-config
+        #       mountPath: /.my.cnf
+        #       subPath: .my.cnf
+        #       readOnly: true
+
       volumes:
         - name: mysql-data
           persistentVolumeClaim:
             claimName: {{ include "shopsphere.mysql.fullname" . }}
+        # - name: mysql-exporter-config #this is the valume name
+        #   secret:
+        #     secretName: mysql-exporter-config #this is the secret name
+        #     defaultMode: 0644
 {{- end }}

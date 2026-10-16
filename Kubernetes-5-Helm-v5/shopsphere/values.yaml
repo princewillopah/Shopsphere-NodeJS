@@ -143,8 +143,8 @@ frontend:
   replicaCount: 1
   image:
     repository: princewillopah/shopsphere-nodejs-ui
-    # tag: "1.0.0"
-    tag: "latest"
+    tag: "28dc35e"
+    # tag: "latest"
     digest: ""
     pullPolicy: IfNotPresent
 
@@ -236,7 +236,7 @@ mysql:
     enabled: true
     accessModes:
       - ReadWriteOnce
-    size: 5Gi
+    size: 3Gi
     storageClass: ""
   args:
     - "--character-set-server=utf8mb4"
@@ -249,7 +249,7 @@ mysql:
       failureThreshold: 6
     liveness:
       initialDelaySeconds: 45
-      periodSeconds: 1
+      periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 6
   resources:

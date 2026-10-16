@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: {{ .Release.Name }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: frontend
-    release: kube-prometheus-stack
+    release: kube-prometheus-stack     # this is FOR the prometheus CRD
 
 spec:
   namespaceSelector:
@@ -19,8 +19,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: frontend
-      app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }} #shopsphere
+      app.kubernetes.io/name: {{ .Release.Name }} #shopsphere
 
   endpoints:
     - port: metrics   # This points to the metrics port added to the deployment/service

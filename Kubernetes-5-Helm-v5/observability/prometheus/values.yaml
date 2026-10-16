@@ -87,7 +87,7 @@ grafana:
     type: pvc
     accessModes:
       - ReadWriteOnce
-    size: 5Gi
+    size: 2Gi
 
   resources:
     requests: { cpu: 100m, memory: 256Mi }
@@ -154,7 +154,7 @@ alertmanager:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 2Gi
+              storage: 1Gi
 
     resources:
       requests:

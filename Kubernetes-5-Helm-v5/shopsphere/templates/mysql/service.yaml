@@ -4,7 +4,9 @@ kind: Service
 metadata:
   name: db
   labels:
-    {{- include "shopsphere.mysql.labels" . | nindent 4 }}
+      app.kubernetes.io/component: mysql
+      app.kubernetes.io/instance: {{ .Release.Name }} #shopsphere
+      app.kubernetes.io/name: {{ .Release.Name }} #shopsphere
 spec:
   type: {{ .Values.mysql.service.type }}
 
@@ -15,5 +17,8 @@ spec:
     - name: mysql
       port: {{ .Values.mysql.service.port }}
       targetPort: {{ .Values.mysql.service.targetPort }}
-      protocol: TCP
+    #   protocol: TCP
+    # - name: metrics
+    #   port: 9104
+    #   targetPort: 9104
 {{- end }}
