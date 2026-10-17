@@ -88,6 +88,24 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
 
+      - name: Debug OIDC claims
+        if: github.event_name == 'push'
+        run: |
+          echo "Role ARN variable: ${{ vars.AWS_ROLE_ARN }}"
+          python3 - <<'EOF'
+          import os, json, base64, urllib.request
+          req = urllib.request.Request(
+              os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"] + "&audience=sts.amazonaws.com",
+              headers={"Authorization": "Bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]},
+          )
+          token = json.load(urllib.request.urlopen(req))["value"]
+          payload = token.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+          for k in ("sub", "aud", "iss", "repository", "environment", "ref"):
+              print(k, "=", claims.get(k))
+          EOF
+
       # AWS auth and push happen only on real pushes, never on pull_request.
       - name: Configure AWS credentials (OIDC)
         if: github.event_name == 'push'

@@ -214,3 +214,4 @@ Swagger UI: `http://<host>:5000/docs`
 - The SPA stores the JWT in `localStorage` (the standard trade-off for a decoupled
   cross-origin SPA). Mitigate with short token lifetimes + strict CSP.
 - AWS access uses the EC2 instance role — no long-lived keys.
+test
