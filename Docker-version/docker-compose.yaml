@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: RootSecurePassword123!
       MYSQL_DATABASE: shopsphere
       MYSQL_USER: shopsphere
-      MYSQL_PASSWORD: StrongPassword123!
+      MYSQL_PASSWORD: StrongPassword123
     ports:
       - "3306:3306"
     volumes:
@@ -64,7 +64,7 @@ services:
       DB_PORT: 3306
       DB_NAME: shopsphere
       DB_USER: shopsphere
-      DB_PASSWORD: StrongPassword123!
+      DB_PASSWORD: StrongPassword123
       DB_POOL_MAX: 10
       
       # ---- JWT & Security ----

@@ -11,6 +11,14 @@ const env = {
   port: toInt(process.env.SERVER_PORT, 5000),
   nodeEnv: process.env.NODE_ENV || 'development',
 
+  observability: {
+    serviceName: process.env.OBSERVABILITY_SERVICE_NAME || 'shopsphere-backend',
+    logLevel: process.env.LOG_LEVEL || 'info',
+    metricsEnabled: (process.env.METRICS_ENABLED || 'true').toLowerCase() === 'true',
+    tracingEnabled: (process.env.OTEL_ENABLED || 'false').toLowerCase() === 'true',
+    otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '',
+  },
+
   db: {
     host: process.env.DB_HOST || '127.0.0.1',
     port: toInt(process.env.DB_PORT, 3306),

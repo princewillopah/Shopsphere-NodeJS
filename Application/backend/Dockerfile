@@ -13,9 +13,9 @@ RUN npm ci --omit=dev;
 COPY . .
 RUN npm prune --production
 
-# -----------------------------------------------
+# -----------------------------------------------------
 # Stage 2: Final Lightweight Runtime for backend image
-# -------------------------------------
+# -----------------------------------------------------
 FROM node:22-alpine
 RUN apk update && apk upgrade --no-cache
 ENV NODE_ENV=production

@@ -1,3 +1,5 @@
+import './observability/tracing.js';
+
 import { createApp } from './app.js';
 import env from './config/env.js';
 import sequelize from './config/database.js';

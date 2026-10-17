@@ -1,0 +1,27 @@
+{{- if and .Values.frontend.enabled .Values.frontend.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+      app.kubernetes.io/component: frontend
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ .Release.Name }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+
+  selector:
+      app.kubernetes.io/component: frontend
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ .Release.Name }}
+
+  ports:
+    - name: http
+      port: {{ .Values.frontend.service.port }}
+      targetPort: {{ .Values.frontend.service.targetPort }}
+      protocol: TCP
+    - name: metrics # 👈 Exposes sidecar port to the cluster
+      port: 9113
+      targetPort: metrics
+{{- end }}

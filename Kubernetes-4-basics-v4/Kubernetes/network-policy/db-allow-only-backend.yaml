@@ -14,6 +14,9 @@ spec:
         - podSelector:
             matchLabels:
               app: backend # Condition: Only allow pods with this label
+        # - podSelector:
+        #     matchLabels:
+        #       app.kubernetes.io/component: migration # Condition: Allow migration pods to access the DB
       ports:
         - protocol: TCP
           port: 3306 # Secure Port: MySQL default

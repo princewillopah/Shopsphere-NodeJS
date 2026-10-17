@@ -1,0 +1,32 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: shopsphere-prod
+  region: us-east-1 # Change to your preferred region
+  version: "1.31"   # Use a modern, supported EKS version
+
+# 1. Network Topology (VPC Structure)
+vpc:
+  cidr: "10.0.0.0/16"
+  clusterEndpoints:
+    publicAccess: true   # Allows you to run kubectl from your local machine
+    privateAccess: true  # Allows nodes to talk to the control plane privately
+  nat:
+    gateway: HighlyAvailable # Creates 1 NAT Gateway per AZ for production redundancy
+
+# 2. Compute Infrastructure (Worker Nodes)
+managedNodeGroups:
+  - name: shopsphere-nodes-infra
+    instanceType: t3.medium
+    desiredCapacity: 3
+    minSize: 3
+    maxSize: 6
+    privateNetworking: true # Enforces that nodes are placed in PRIVATE subnets
+    volumeSize: 50
+    volumeType: gp3
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        ebs: true # Pre-requisite for your EBS CSI driver
+#──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────

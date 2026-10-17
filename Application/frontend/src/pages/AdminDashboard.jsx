@@ -7,21 +7,74 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({});
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  const loadProducts = async () => {
+    let lastError;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await api.get('/admin/products', {
+          timeout: 10000,
+          params: { request: Date.now() }
+        });
+        return response.data;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    // The public catalogue uses the same product serializer and keeps the
+    // admin page usable when the protected endpoint is reset by the proxy.
+    try {
+      const response = await api.get('/products', {
+        timeout: 10000,
+        params: { request: Date.now() }
+      });
+      return response.data;
+    } catch (error) {
+      throw lastError || error;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [s, u, p] = await Promise.all([
-          api.get('/admin/stats'),
-          api.get('/admin/users'),
-          api.get('/admin/products')
-        ]);
-        setStats(s.data);
-        setUsers(u.data);
-        setProducts(p.data);
-      } catch (err) {
-        alert('Failed to load data: ' + (err.response?.data?.message || 'Unknown error'));
+      setLoading(true);
+      setLoadError('');
+
+      const requests = await Promise.allSettled([
+        api.get('/admin/stats'),
+        api.get('/admin/users'),
+        loadProducts()
+      ]);
+
+      const [statsResult, usersResult, productsResult] = requests;
+      const failures = [];
+
+      if (statsResult.status === 'fulfilled') {
+        setStats(statsResult.value.data);
+      } else {
+        failures.push('statistics');
       }
+
+      if (usersResult.status === 'fulfilled') {
+        setUsers(Array.isArray(usersResult.value.data) ? usersResult.value.data : []);
+      } else {
+        failures.push('users');
+      }
+
+      if (productsResult.status === 'fulfilled') {
+        setProducts(Array.isArray(productsResult.value.data) ? productsResult.value.data : []);
+      } else {
+        failures.push('products');
+      }
+
+      if (failures.length > 0) {
+        setLoadError(`Could not load ${failures.join(', ')}. Please refresh and try again.`);
+      }
+
+      setLoading(false);
     };
     fetchData();
   }, []);
@@ -80,6 +133,11 @@ const handleDeleteProduct = async (id, name) => {
 return (
   <div>
     <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+    {loadError && (
+      <div role="alert" className="bg-red-100 text-red-700 p-4 rounded mb-6">
+        {loadError}
+      </div>
+    )}
 
       {/* Add New Product Form */}
       <div className="bg-indigo-50 p-6 rounded-lg shadow mb-8">
@@ -308,7 +366,9 @@ return (
     {/* Products Table */}
     <div className="bg-white p-6 rounded-lg shadow">
       <h2 className="text-xl font-bold mb-4">Products</h2>
-      {products.length === 0 ? (
+      {loading ? (
+        <p className="text-gray-500">Loading products...</p>
+      ) : products.length === 0 ? (
         <p className="text-gray-500">No products found.</p>
       ) : (
         <table className="min-w-full border rounded">

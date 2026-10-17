@@ -1,0 +1,232 @@
+{{- if .Values.backend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "shopsphere.backend.fullname" . }}
+  labels:
+    {{- include "shopsphere.backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+
+  strategy:
+    type: {{ .Values.backend.strategy.type }}
+    {{- if eq .Values.backend.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.backend.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.backend.strategy.rollingUpdate.maxSurge }}
+    {{- end }}
+
+  selector:
+    matchLabels:
+      {{- include "shopsphere.backend.selectorLabels" . | nindent 6 }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "shopsphere.backend.labels" . | nindent 8 }}
+        {{- with .Values.backend.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      {{- with .Values.backend.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+    spec:
+
+      serviceAccountName: {{ include "shopsphere.serviceAccountName" . }}
+
+      terminationGracePeriodSeconds: {{ .Values.backend.terminationGracePeriodSeconds }}
+
+      {{- with .Values.backend.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.backend.securityContext.pod }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.backend.initContainers.waitForDatabase.enabled }}
+      initContainers:
+
+        - name: wait-for-db
+
+          image: "{{ .Values.backend.initContainers.waitForDatabase.image.repository }}:{{ .Values.backend.initContainers.waitForDatabase.image.tag }}"
+
+          imagePullPolicy: {{ .Values.backend.initContainers.waitForDatabase.image.pullPolicy }}
+
+          command:
+            - sh
+            - -c
+            - >
+              until mysqladmin ping
+              -h "$DB_HOST"
+              -P "$DB_PORT"
+              -u "$MYSQL_USER"
+              -p"$MYSQL_PASSWORD";
+              do
+                echo "Waiting for database...";
+                sleep 2;
+              done
+
+          env:
+
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shopsphere.fullname" . }}-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shopsphere.fullname" . }}-config
+                  key: DB_PORT
+
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_USER
+
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_PASSWORD
+
+          resources:
+            {{- toYaml .Values.backend.initContainers.waitForDatabase.resources | nindent 12 }}
+
+      {{- end }}
+
+      containers:
+        - name: backend
+          image:  {{- if .Values.backend.image.digest }}
+            "{{ .Values.backend.image.repository }}@{{ .Values.backend.image.digest }}"
+          {{- else }}
+            "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          {{- end }} 
+
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.container.port }}
+              protocol: TCP
+
+          envFrom:
+            - configMapRef:
+                name: {{ include "shopsphere.fullname" . }}-config
+            - secretRef:
+                name: {{ .Values.secrets.existingDatabaseSecret }}
+
+          env:
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_DATABASE
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_PASSWORD
+
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingS3Secret }}
+                  key: AWS_ACCESS_KEY_ID
+
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingS3Secret }}
+                  key: AWS_SECRET_ACCESS_KEY
+
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+
+          {{- if .Values.backend.probes.readiness.enabled }}
+          readinessProbe:
+
+            httpGet:
+              path: {{ .Values.backend.probes.readiness.path }}
+              port: {{ .Values.backend.probes.readiness.port }}
+
+            initialDelaySeconds: {{ .Values.backend.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.readiness.timeoutSeconds }}
+            successThreshold: {{ .Values.backend.probes.readiness.successThreshold }}
+            failureThreshold: {{ .Values.backend.probes.readiness.failureThreshold }}
+
+          {{- end }}
+
+          {{- if .Values.backend.probes.liveness.enabled }}
+          livenessProbe:
+
+            httpGet:
+              path: {{ .Values.backend.probes.liveness.path }}
+              port: {{ .Values.backend.probes.liveness.port }}
+
+            initialDelaySeconds: {{ .Values.backend.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.liveness.timeoutSeconds }}
+            successThreshold: {{ .Values.backend.probes.liveness.successThreshold }}
+            failureThreshold: {{ .Values.backend.probes.liveness.failureThreshold }}
+
+          {{- end }}
+
+          {{- with .Values.backend.securityContext.container }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.backend.tmpVolume.enabled }}
+          volumeMounts:
+
+            - name: tmp
+              mountPath: {{ .Values.backend.tmpVolume.mountPath }}
+
+          {{- end }}
+
+      {{- if .Values.backend.tmpVolume.enabled }}
+      volumes:
+
+        - name: tmp
+          emptyDir: {}
+
+      {{- end }}
+
+      {{- with .Values.backend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.backend.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.backend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.backend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+{{- end }}

@@ -1,0 +1,96 @@
+# values-loki.yaml
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem  # or s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  limits_config:
+    retention_period: 168h   # 7d — change to match your disk budget
+    # reject_old_samples: true
+    # reject_old_samples_max_age: 168h
+
+  # compactor:
+  #   retention_enabled: true
+  #   delete_request_store: filesystem
+
+
+deploymentMode: Monolithic  # renamed from SingleBinary in chart 12.0.0 — use the current name
+
+singleBinary:
+  replicas: 1
+
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 4Gi
+    enableStatefulSetAutoDeletePVC: true   # defaults to false as of chart 18.3.0 — set explicitly or your PVC survives a scale-down/delete
+  
+  resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
+# Zero out replica counts of other deployment modes
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+
+ingester:
+  replicas: 0
+querier:
+  replicas: 0
+queryFrontend:
+  replicas: 0
+queryScheduler:
+  replicas: 0
+distributor:
+  replicas: 0
+compactor:
+  replicas: 0
+indexGateway:
+  replicas: 0
+bloomPlanner:
+  replicas: 0
+bloomBuilder:
+  replicas: 0
+bloomGateway:
+  replicas: 0
+
+gateway:
+  enabled: false  # If you explicitly turn it off, you bypass the internal NGINX container entirely. You will instead have to manage networking, path routing, and basic load balancing manually by exposing individual Kubernetes services for reads and writes, or routing directly via Kubernetes Gateway APIs / external load balancers.
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+  lokiCanary:
+    enabled: false
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+minio:
+  enabled: false
+
+test:
+  enabled: false

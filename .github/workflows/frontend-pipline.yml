@@ -18,9 +18,11 @@ concurrency:
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
-    # this makes it use prod vars for main, staging vars for develop
     environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
     timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         working-directory: ./Application/frontend
@@ -33,6 +35,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Application/frontend/package-lock.json
 
+
+      # - name: Step to Check variables
+      #   run: |
+      #     [ -n "${{ vars.ECR_REGISTRY }}" ] && echo "ECR_REGISTRY set" || echo "ECR_REGISTRY EMPTY"
+      #     [ -n "${{ vars.AWS_ROLE_ARN }}" ] && echo "AWS_ROLE_ARN set" || echo "AWS_ROLE_ARN EMPTY"
+      #     [ -n "${{ vars.AWS_REGION }}" ] && echo "AWS_REGION set" || echo "AWS_REGION EMPTY"
+
+
       - name: Install Dependencies
         run: npm ci
 
@@ -43,7 +53,7 @@ jobs:
         run: npm test --if-present -- --ci
 
       - name: Run npm audit (prod deps only, fails on high/critical)
-        run: npm audit --omit=dev --audit-level=high || true
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Trivy FS Scan (source deps)
         uses: aquasecurity/trivy-action@v0.36.0
@@ -57,15 +67,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/shopsphere-nodejs-ui
+          images: ${{ vars.ECR_REGISTRY }}/shopsphere-nodejs-ui
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
             type=sha,prefix=
 
       - uses: docker/setup-buildx-action@v4
 
-      # Build locally only — no push yet. Nothing hits the registry
-      # until it's scanned. On PR runs, this is the entire pipeline.
       - name: Build image (local, unpushed)
         uses: docker/build-push-action@v7
         with:
@@ -88,16 +97,37 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
 
-      # Only authenticate to and push the registry on an actual
-      # merge to main — never on pull_request.
-      - uses: docker/login-action@v4
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Debug OIDC claims
+        if: github.event_name == 'push'
+        run: |
+          echo "Role ARN variable: ${{ vars.AWS_ROLE_ARN }}"
+          python3 - <<'EOF'
+          import os, json, base64, urllib.request
+          req = urllib.request.Request(
+              os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"] + "&audience=sts.amazonaws.com",
+              headers={"Authorization": "Bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]},
+          )
+          token = json.load(urllib.request.urlopen(req))["value"]
+          payload = token.split(".")[1]
+          payload += "=" * (-len(payload) % 4)
+          claims = json.loads(base64.urlsafe_b64decode(payload))
+          for k in ("sub", "aud", "iss", "repository", "environment", "ref"):
+              print(k, "=", claims.get(k))
+          EOF
+
+      - name: Configure AWS credentials (OIDC)
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Push Frontend Image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push'
         uses: docker/build-push-action@v7
         with:
           context: ./Application/frontend

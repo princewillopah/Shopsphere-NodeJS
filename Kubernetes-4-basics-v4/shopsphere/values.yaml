@@ -1,0 +1,41 @@
+global:
+  dockerhubUsername: YOUR_DOCKERHUB_USERNAME
+
+api:
+  replicaCount: 2
+  image:
+    repository: YOUR_DOCKERHUB_USERNAME/shopsphere-nodejs-api
+    tag: latest
+    pullPolicy: Always
+  port: 5000
+  env:
+    NODE_ENV: production
+    PORT: 5000
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  livenessProbe:
+    httpGet: { path: /health, port: 5000 }
+  readinessProbe:
+    httpGet: { path: /health, port: 5000 }
+  config:
+    namespace: shopsphere
+    configMapName: shopsphere-config
+    secretName: shopsphere-secrets
+    s3SecretName: shopsphere-s3-secrets
+
+ui:
+  replicaCount: 2
+  image:
+    repository: YOUR_DOCKERHUB_USERNAME/shopsphere-nodejs-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8080
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { cpu: 200m, memory: 256Mi }
+
+ingress:
+  enabled: true
+  className: nginx
+  host: shopsphere.local

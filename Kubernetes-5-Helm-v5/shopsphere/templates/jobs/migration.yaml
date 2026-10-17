@@ -1,0 +1,152 @@
+{{- if and .Values.migration.enabled .Values.backend.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "shopsphere.fullname" . }}-migration
+  labels:
+    {{- include "shopsphere.backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+
+  ttlSecondsAfterFinished: {{ .Values.migration.ttlSecondsAfterFinished }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "shopsphere.backend.labels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+
+    spec:
+      restartPolicy: Never
+
+      serviceAccountName: {{ include "shopsphere.serviceAccountName" . }}
+
+      initContainers:
+
+        - name: wait-for-db
+
+          image: "{{ .Values.backend.initContainers.waitForDatabase.image.repository }}:{{ .Values.backend.initContainers.waitForDatabase.image.tag }}"
+
+          imagePullPolicy: {{ .Values.backend.initContainers.waitForDatabase.image.pullPolicy }}
+
+          command:
+            - sh
+            - -c
+            - >
+              until mysqladmin ping
+              -h "$DB_HOST"
+              -P "$DB_PORT"
+              -u "$MYSQL_USER"
+              -p"$MYSQL_PASSWORD";
+              do
+                echo "Waiting for database...";
+                sleep 2;
+              done
+
+          env:
+
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shopsphere.fullname" . }}-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "shopsphere.fullname" . }}-config
+                  key: DB_PORT
+
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_USER
+
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_PASSWORD
+
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
+
+      containers:
+
+        - name: migration
+
+          image: {{- if .Values.migration.image.digest }}
+            "{{ .Values.migration.image.repository }}@{{ .Values.migration.image.digest }}"
+          {{- else }}
+            "{{ .Values.migration.image.repository }}:{{ .Values.migration.image.tag }}"
+          {{- end }}
+
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+
+          command:
+            - sh
+            - -c
+            - npx sequelize-cli db:migrate
+
+          envFrom:
+
+            - configMapRef:
+                name: {{ include "shopsphere.fullname" . }}-config
+
+            - secretRef:
+                name: {{ .Values.secrets.existingDatabaseSecret }}
+
+          env:
+
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_DATABASE
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingDatabaseSecret }}
+                  key: MYSQL_PASSWORD
+
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}
